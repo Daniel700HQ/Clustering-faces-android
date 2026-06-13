@@ -2,7 +2,7 @@ package com.cluster.facelabs.clusterface.Gallery;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,44 +34,56 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         return new ViewHolder(view);
     }
 
-    /**
-     * gets the image url from adapter and passes to Glide API to load the image
-     *
-     * @param viewHolder
-     * @param i
-     */
     @Override
     public void onBindViewHolder(final ViewHolder viewHolder, final int i) {
+        if (imageUrls == null || i >= imageUrls.size()) {
+            return;
+        }
         Glide.with(context).load(imageUrls.get(i)).into(viewHolder.img);
 
         if(mode == 1) {
             String[] splits = imageUrls.get(i).split("/");
-            final String personIdx = splits[splits.length-2];
-
-            int count = new File(Utils.getResultsPath()+"/"+personIdx).listFiles().length - 1;
-            viewHolder.txtView.setText(String.valueOf(count) + "photos");
-
-            viewHolder.img.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    v.startAnimation(AnimationUtils.loadAnimation(v.getContext(), R.anim.image_click));
-
-                    Intent intent = new Intent(v.getContext(), GalleryActivity.class);
-                    intent.putExtra("mode", 2);
-                    intent.putExtra("personIdx", personIdx);
-                    v.getContext().startActivity(intent);
+            if (splits.length >= 2) {
+                final String personIdx = splits[splits.length-2];
+                File clusterFolder = new File(Utils.getResultsPath() + "/" + personIdx);
+                File[] listFiles = clusterFolder.listFiles();
+                int count = 0;
+                if (listFiles != null) {
+                    count = listFiles.length - 1;
                 }
-            });
+                if (count < 0) {
+                    count = 0;
+                }
+                viewHolder.txtView.setText(String.valueOf(count) + " photos");
+
+                viewHolder.img.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            v.startAnimation(AnimationUtils.loadAnimation(v.getContext(), R.anim.image_click));
+                            Intent intent = new Intent(v.getContext(), GalleryActivity.class);
+                            intent.putExtra("mode", 2);
+                            intent.putExtra("personIdx", personIdx);
+                            v.getContext().startActivity(intent);
+                        } catch (Exception e) {
+                            Utils.showToast(context, "Error al procesar la navegación de galería: " + e.toString());
+                        }
+                    }
+                });
+            }
         }
         else {
             viewHolder.img.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    v.startAnimation(AnimationUtils.loadAnimation(v.getContext(), R.anim.image_click));
-
-                    Intent intent = new Intent(v.getContext(), ImageActivity.class);
-                    intent.putExtra("cropPath", imageUrls.get(i));
-                    v.getContext().startActivity(intent);
+                    try {
+                        v.startAnimation(AnimationUtils.loadAnimation(v.getContext(), R.anim.image_click));
+                        Intent intent = new Intent(v.getContext(), ImageActivity.class);
+                        intent.putExtra("cropPath", imageUrls.get(i));
+                        v.getContext().startActivity(intent);
+                    } catch (Exception e) {
+                        Utils.showToast(context, "Error al abrir la visualización de la imagen: " + e.toString());
+                    }
                 }
             });
         }
@@ -79,6 +91,9 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
+        if (imageUrls == null) {
+            return 0;
+        }
         return imageUrls.size();
     }
 

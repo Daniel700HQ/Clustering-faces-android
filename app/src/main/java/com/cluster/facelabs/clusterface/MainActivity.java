@@ -6,13 +6,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.provider.Settings;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -22,6 +19,12 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.cluster.facelabs.clusterface.Gallery.GalleryActivity;
 
@@ -54,20 +57,23 @@ public class MainActivity extends AppCompatActivity {
     private TextView kDesc, epsDesc, minPtsDesc, cwThreshDesc, cwGraphProgressDesc;
 
     public static TextView clusterResultsText;
+    public static TextView faceFeedbackText;
+    public static TextView encodingFeedbackText;
 
     public static SeekBar minFaceSizeSeekbar;
     public static Switch faceDetectModeSwitch;
 
     TfliteHandler tfliteHandler = null;
     FaceHandler faceHandler = null;
-    FirebaseModelHandler fbModelHandler = null;
     ClusteringHandler clusteringHandler = null;
     ChineseWhispersHandler cwHandler = null;
 
     HashMap<String, InferenceHelper.Encoding> Encodings;
 
-    private static final int RC_STORAGE_PERMISSION = 0;
-    private static final int RC_PHOTO_PICKER = 1;
+    private static final int RC_STORAGE_PERMISSION = 1001;
+    private static final int RC_PHOTO_PICKER = 1002;
+    private static final int RC_MANAGE_STORAGE = 1003;
+    private static final int RC_MODEL_PICKER = 1004;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
         cwThreshText = findViewById(R.id.cw_threshold);
 
         clusterResultsText = findViewById(R.id.cluster_output_text);
+        faceFeedbackText = findViewById(R.id.face_feedback_text);
+        encodingFeedbackText = findViewById(R.id.encoding_feedback_text);
 
         minFaceSizeSeekbar = findViewById(R.id.min_face_size_seekbar);
         faceDetectModeSwitch = findViewById(R.id.face_detect_mode_switch);
@@ -121,217 +129,258 @@ public class MainActivity extends AppCompatActivity {
         categories.add(cw);
         categories.add(kmeans);
         categories.add(dbscan);
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, R.layout.spinner_item, categories);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, categories);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         clusterTypeSpinner.setAdapter(spinnerAdapter);
         clusterTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 clusterMethod = parent.getItemAtPosition(position).toString();
-                if(clusterMethod.equals(dbscan)){
-                    for(int i = 0; i < dbscanViews.size(); i++)
+                if (clusterMethod.equals(dbscan)) {
+                    for (int i = 0; i < dbscanViews.size(); i++)
                         dbscanViews.get(i).setVisibility(View.VISIBLE);
-                    for(int i = 0; i < kmeansViews.size(); i++)
+                    for (int i = 0; i < kmeansViews.size(); i++)
                         kmeansViews.get(i).setVisibility(View.GONE);
-                    for(int i = 0; i < cwViews.size(); i++)
+                    for (int i = 0; i < cwViews.size(); i++)
                         cwViews.get(i).setVisibility(View.GONE);
-                }
-                else if(clusterMethod.equals(kmeans)){
-                    for(int i = 0; i < dbscanViews.size(); i++)
+                } else if (clusterMethod.equals(kmeans)) {
+                    for (int i = 0; i < dbscanViews.size(); i++)
                         dbscanViews.get(i).setVisibility(View.GONE);
-                    for(int i = 0; i < kmeansViews.size(); i++)
+                    for (int i = 0; i < kmeansViews.size(); i++)
                         kmeansViews.get(i).setVisibility(View.VISIBLE);
-                    for(int i = 0; i < cwViews.size(); i++)
+                    for (int i = 0; i < cwViews.size(); i++)
                         cwViews.get(i).setVisibility(View.GONE);
-                }
-                else if(clusterMethod.equals(cw)){
-                    for(int i = 0; i < dbscanViews.size(); i++)
+                } else if (clusterMethod.equals(cw)) {
+                    for (int i = 0; i < dbscanViews.size(); i++)
                         dbscanViews.get(i).setVisibility(View.GONE);
-                    for(int i = 0; i < kmeansViews.size(); i++)
+                    for (int i = 0; i < kmeansViews.size(); i++)
                         kmeansViews.get(i).setVisibility(View.GONE);
-                    for(int i = 0; i < cwViews.size(); i++)
+                    for (int i = 0; i < cwViews.size(); i++)
                         cwViews.get(i).setVisibility(View.VISIBLE);
                 }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
             }
         });
 
         Encodings = null;
     }
 
-    private void requestPermissions(){
-        boolean readPermissionGranted = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED;
-        boolean writePermissionGranted = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED;
-        ArrayList<String> permissionsToRequest = new ArrayList<>();
-        if(!readPermissionGranted)
-            permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE);
-        if(!writePermissionGranted)
-            permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkModelStatus();
+    }
 
-        if(!permissionsToRequest.isEmpty()){
-            ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]),
-                    RC_STORAGE_PERMISSION);
+    private void checkModelStatus() {
+        File modelFile = new File(Utils.getModelPath());
+        View encodeButton = findViewById(R.id.get_encodings_button);
+        if (encodeButton != null) {
+            if (modelFile.exists()) {
+                encodeButton.setEnabled(true);
+            } else {
+                encodeButton.setEnabled(false);
+            }
         }
-        else
-            Utils.createInputAndCropsFolder();
+    }
+
+    private void requestPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                try {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                    intent.addCategory("android.intent.category.DEFAULT");
+                    intent.setData(Uri.parse(String.format("package:%s", getApplicationContext().getPackageName())));
+                    startActivityForResult(intent, RC_MANAGE_STORAGE);
+                } catch (Exception e) {
+                    try {
+                        Intent intent = new Intent();
+                        intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                        startActivityForResult(intent, RC_MANAGE_STORAGE);
+                    } catch (Exception ex) {
+                        Utils.showToast(this, "Error al solicitar acceso total a archivos: " + ex.toString());
+                    }
+                }
+            } else {
+                Utils.createInputAndCropsFolder();
+                checkModelStatus();
+            }
+        } else {
+            boolean readPermissionGranted = ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED;
+            boolean writePermissionGranted = ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED;
+            ArrayList<String> permissionsToRequest = new ArrayList<>();
+            if (!readPermissionGranted)
+                permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            if (!writePermissionGranted)
+                permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+            if (!permissionsToRequest.isEmpty()) {
+                ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]),
+                        RC_STORAGE_PERMISSION);
+            } else {
+                Utils.createInputAndCropsFolder();
+                checkModelStatus();
+            }
+        }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == RC_STORAGE_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                /*permission granted*/
                 Utils.createInputAndCropsFolder();
+                checkModelStatus();
             } else {
-                /*permission denied*/
-
-                /*if the user has not clicked "Do not ask again"
-                 * and cancels the permission grant, exit app*/
-                if (ActivityCompat.shouldShowRequestPermissionRationale(
-                        this, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                     this.finishAndRemoveTask();
-                    /*if the user has clicked on "Do not ask again"
-                     * display a dialog saying that permission is required
-                     * and re-direct the user to the settings to grant permission
-                     *
-                     * if the user cancels this dialog as well, exit app*/
-                else {
-                    final AlertDialog.Builder adb = new AlertDialog.Builder(this);
-                    adb.setTitle("Permissions Required")
-                            .setMessage("You have denied Storage permissions which are required to proceed!\n" +
-                                    "Please grant permission from the app settings.")
-                            .setPositiveButton("Settings", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                    Uri uri = Uri.fromParts("package", MainActivity.this.getPackageName(), null);
-                                    intent.setData(uri);
-                                    /*after getting back from this activity
-                                     * check again if permission has been granted*/
-                                    startActivityForResult(intent, RC_STORAGE_PERMISSION);
-                                }
-                            })
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    MainActivity.this.finishAndRemoveTask();
-                                }
-                            }).setCancelable(false).create().show();
+                } else {
+                    showSettingsDialog();
                 }
             }
         }
     }
 
-    /**select photos to process from the gallery*/
+    private void showSettingsDialog() {
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setTitle("Permisos de almacenamiento obligatorios")
+                .setMessage("Has denegado los permisos de almacenamiento necesarios. Otórgalos desde ajustes.")
+                .setPositiveButton("Ajustes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            Uri uri = Uri.fromParts("package", MainActivity.this.getPackageName(), null);
+                            intent.setData(uri);
+                            startActivityForResult(intent, RC_STORAGE_PERMISSION);
+                        } catch (Exception e) {
+                            Utils.showToast(MainActivity.this, "Error al redirigir a ajustes de la app: " + e.toString());
+                        }
+                    }
+                })
+                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MainActivity.this.finishAndRemoveTask();
+                    }
+                }).setCancelable(false).create().show();
+    }
+
     public void selectInputPhotos(View view) {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/jpeg");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true); //pick from local photos
-        startActivityForResult(Intent.createChooser(intent, "Complete action using"), RC_PHOTO_PICKER);
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+        startActivityForResult(Intent.createChooser(intent, "Seleccionar fotos"), RC_PHOTO_PICKER);
+    }
+
+    public void importModel(View view) {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        startActivityForResult(Intent.createChooser(intent, "Seleccionar modelo sandberg.tflite"), RC_MODEL_PICKER);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == RC_PHOTO_PICKER){
-            if(resultCode == RESULT_OK) {
-                if(data.getData() == null){
-                    //multiple photos selected
-                    ClipData clipdata = data.getClipData();
-                    for (int i=0; i<clipdata.getItemCount();i++){
-                        Uri imageUri = clipdata.getItemAt(i).getUri();
+        if (requestCode == RC_PHOTO_PICKER) {
+            if (resultCode == RESULT_OK && data != null) {
+                try {
+                    if (data.getData() == null) {
+                        ClipData clipdata = data.getClipData();
+                        if (clipdata != null) {
+                            for (int i = 0; i < clipdata.getItemCount(); i++) {
+                                Uri imageUri = clipdata.getItemAt(i).getUri();
+                                Utils.copyPhotoToInputFolder(this, imageUri);
+                            }
+                        }
+                    } else {
+                        Uri imageUri = data.getData();
                         Utils.copyPhotoToInputFolder(this, imageUri);
                     }
-                }else{
-                    //single photo selected
-                    Uri imageUri = data.getData();
-                    Utils.copyPhotoToInputFolder(this, imageUri);
+                } catch (Exception e) {
+                    Utils.showToast(this, "Error al procesar la selección de fotos: " + e.toString());
                 }
-            }else{
-                Utils.showToast(this, "Unable to pick image from gallery!");
+            } else {
+                Utils.showToast(this, "Acción de selección cancelada.");
             }
-        }
-        else if(requestCode == RC_STORAGE_PERMISSION)
-        {
+        } else if (requestCode == RC_STORAGE_PERMISSION || requestCode == RC_MANAGE_STORAGE) {
             requestPermissions();
+        } else if (requestCode == RC_MODEL_PICKER) {
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                Utils.importModel(this, data.getData());
+                checkModelStatus();
+            } else {
+                Utils.showToast(this, "Importación del modelo cancelada.");
+            }
         }
     }
 
-    public void getFaces(View view){
-        if(faceHandler == null)
+    public void getFaces(View view) {
+        if (faceHandler == null) {
             faceHandler = new FaceHandler(this);
+        }
         faceHandler.getCrops();
     }
 
-    public void getEncodings(View view){
-        if(tfliteHandler == null)
+    public void getEncodings(View view) {
+        if (tfliteHandler == null) {
             tfliteHandler = new TfliteHandler(this, MainActivity.this);
+        }
         tfliteHandler.runTfliteInferenceOnAllCrops();
         Encodings = tfliteHandler.mEncodings;
     }
 
-    /*
-    public void getFBEncodings(View view){
-        if(fbModelHandler == null)
-            fbModelHandler = new FirebaseModelHandler(this);
-        fbModelHandler.runFBModelInferenceOnAllCrops();
-        Encodings = fbModelHandler.mEncodings;
-    }*/
-
-    public void getClusters(View view){
-        if(Encodings == null){
-            Utils.showToast(this, "No encodings to cluster!");
+    public void getClusters(View view) {
+        if (Encodings == null) {
+            Utils.showToast(this, "No existen codificaciones calculadas para agrupar.");
             return;
         }
-        if(clusterMethod.equals(cw)){
-            if(cwHandler == null)
+        if (clusterMethod.equals(cw)) {
+            if (cwHandler == null) {
                 cwHandler = new ChineseWhispersHandler(this);
-
+            }
             cwHandler.performClustering(Encodings);
-        }else {
-            if (clusteringHandler == null)
+        } else {
+            if (clusteringHandler == null) {
                 clusteringHandler = new ClusteringHandler();
+            }
 
-            if (clusterMethod.equals(dbscan))
+            if (clusterMethod.equals(dbscan)) {
                 clusteringHandler.DBScanClustering(Encodings);
-            else if (clusterMethod.equals(kmeans))
+            } else if (clusterMethod.equals(kmeans)) {
                 clusteringHandler.KMeansClustering(Encodings);
+            }
         }
     }
 
-    public void getResults(View view){
-        if(clusterMethod.equals(cw)){
-            if(cwHandler == null){
-                Utils.showToast(this, "No results to save!");
+    public void getResults(View view) {
+        if (clusterMethod.equals(cw)) {
+            if (cwHandler == null) {
+                Utils.showToast(this, "No hay agrupaciones para guardar.");
                 return;
             }
             cwHandler.saveResults();
-        }else {
-            if(clusteringHandler == null){
-                Utils.showToast(this, "No results to save!");
+        } else {
+            if (clusteringHandler == null) {
+                Utils.showToast(this, "No hay agrupaciones para guardar.");
                 return;
             }
             Utils.createResultsFolder(clusteringHandler, Encodings);
         }
     }
 
-    public void showResults(View view)
-    {
+    public void showResults(View view) {
         File resultsFolder = new File(Utils.getResultsPath());
-        if(!resultsFolder.exists())
-        {
-            Utils.showToast(this, "No results to show!");
+        if (!resultsFolder.exists()) {
+            Utils.showToast(this, "No se encontraron resultados previos.");
             return;
         }
         Intent intent = new Intent(this, GalleryActivity.class);

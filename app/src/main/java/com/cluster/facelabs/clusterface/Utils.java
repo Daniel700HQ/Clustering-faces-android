@@ -3,6 +3,7 @@ package com.cluster.facelabs.clusterface;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -24,9 +25,9 @@ import java.util.Map;
 
 import com.cluster.facelabs.clusterface.InferenceHelper.Encoding;
 
-public class Utils
-{
-    public static void showToast(Context context,  String message) {
+public class Utils {
+
+    public static void showToast(Context context, String message) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 
@@ -34,11 +35,8 @@ public class Utils
         return MediaStore.Images.Media.getBitmap(context.getContentResolver(), uri);
     }
 
-    public static String saveImage(Bitmap bitmap, String origFileName, String faceIdx){
-        Log.d("finding faces", "Saving crop..");
+    public static String saveImage(Bitmap bitmap, String origFileName, String faceIdx) {
         String savedImagePath = null;
-
-        // Create the new file in the external storage
         String imageFileName = origFileName + "_" + faceIdx + ".jpg";
         File cropsDir = new File(Utils.getCropsPath());
         boolean success = true;
@@ -46,7 +44,6 @@ public class Utils
             success = cropsDir.mkdirs();
         }
 
-        // Save the new Bitmap
         if (success) {
             File imageFile = new File(cropsDir, imageFileName);
             savedImagePath = imageFile.getAbsolutePath();
@@ -55,203 +52,199 @@ public class Utils
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
                 fOut.close();
             } catch (Exception e) {
-                e.printStackTrace();
-                Log.d("finding faces", "Failed to write to output stream!");
+                Log.e("Utils", "Error al guardar la imagen de rostro: " + e.toString(), e);
             }
-            Log.d("finding faces", "Saved crop to " + savedImagePath);
-            //galleryAddPic(savedImagePath);
-        }else{
-            Log.d("finding faces", "Failed to save image!");
         }
-
         return savedImagePath;
     }
 
-    public static void copyPhotoToInputFolder(Context context, Uri sourceUri){
+    public static void copyPhotoToInputFolder(Context context, Uri sourceUri) {
         String destPath = Utils.getInputPath() + "/" + sourceUri.getLastPathSegment() + ".jpg";
-
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(sourceUri);
             FileUtils.copyInputStreamToFile(inputStream, new File(destPath));
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            showToast(context, "Error al copiar foto al espacio de trabajo: " + e.toString());
         }
     }
 
-    public static void createResultsFolder(ClusteringHandler clHandler,
-                                           HashMap<String, Encoding> Encodings){
+    public static void createResultsFolder(ClusteringHandler clHandler, HashMap<String, Encoding> Encodings) {
         String resultsDirPath = getResultsPath();
         File resultsDir = new File(resultsDirPath);
 
-        /**create results folder*/
-        if(resultsDir.exists()) try {
-            FileUtils.deleteDirectory(resultsDir);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e("save_debug", "Could not delete existing results folder!");
-            return;
+        if (resultsDir.exists()) {
+            try {
+                FileUtils.deleteDirectory(resultsDir);
+            } catch (Exception e) {
+                Log.e("Utils", "Error al eliminar el directorio de resultados previo: " + e.toString(), e);
+                return;
+            }
         }
 
         boolean success = resultsDir.mkdirs();
-        if(!success){Log.d("save_debug", "Could not create results folder!");return;}
-
-        /**create folders for the clusters*/
-        int num_clusters;
-        if(MainActivity.clusterMethod == "DBScan")
-            num_clusters = clHandler.mDBClusters.size();
-        else if(MainActivity.clusterMethod == "KMeans")
-            num_clusters = clHandler.bestKMeans.size();
-        else
+        if (!success) {
             return;
+        }
 
-        /**create folders for the clusters*/
-        for(int i = -1; i < num_clusters; i++){
+        int num_clusters = 0;
+        if (MainActivity.clusterMethod.equals("DBScan")) {
+            num_clusters = clHandler.mDBClusters.size();
+        } else if (MainActivity.clusterMethod.equals("KMeans")) {
+            num_clusters = clHandler.bestKMeans.size();
+        } else {
+            return;
+        }
+
+        for (int i = -1; i < num_clusters; i++) {
             String clusterDirPath = resultsDirPath + "/" + i;
             File clusterDir = new File(clusterDirPath);
-            success = true;
-            if (!clusterDir.exists()) success = clusterDir.mkdirs();
-            if(!success){
-                Log.d("save_debug", "Could not create clusters folder!");
-                return;
+            if (!clusterDir.exists()) {
+                clusterDir.mkdirs();
             }
 
-            /*add the .nomedia file to each cluster folder*/
             File noMedia = new File(clusterDirPath + "/.nomedia");
             try {
                 noMedia.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                Log.e("Utils", "Error al crear archivo noMedia: " + e.toString(), e);
             }
         }
 
-        /**get the crops directory path
-         * images will be loaded from here and saved to the results folder*/
         String cropsDirPath = getCropsPath();
-
         Iterator it = Encodings.entrySet().iterator();
         MainActivity.saveResultsProgressBar.setMax(Encodings.size());
         MainActivity.saveResultsProgressBar.setProgress(0);
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             String fileName = pair.getKey().toString();
-            Encoding encoding =
-                    (Encoding) pair.getValue();
+            Encoding encoding = (Encoding) pair.getValue();
 
-            /**get the cluster id for this encoding*/
-            int clusterIdx;
-            if(MainActivity.clusterMethod.equals(MainActivity.dbscan))
+            int clusterIdx = -1;
+            if (MainActivity.clusterMethod.equals(MainActivity.dbscan)) {
                 clusterIdx = clHandler.getDBScanClusterIdx(encoding);
-            else if(MainActivity.clusterMethod.equals(MainActivity.kmeans))
+            } else if (MainActivity.clusterMethod.equals(MainActivity.kmeans)) {
                 clusterIdx = clHandler.getKMeansClusterIdx(encoding);
-            else
+            } else {
                 return;
+            }
 
             String sourcePath = cropsDirPath + "/" + fileName;
-            String destPath = resultsDirPath + "/" + clusterIdx + "/" +  fileName;
+            String destPath = resultsDirPath + "/" + clusterIdx + "/" + fileName;
 
             File source = new File(sourcePath);
             File dest = new File(destPath);
             try {
                 FileUtils.copyFile(source, dest);
-            } catch (IOException e) {
-                e.printStackTrace();
-                Log.d("save_debug", "Unable to copy image to results folder!");
+            } catch (Exception e) {
+                Log.e("Utils", "Error al copiar archivo al directorio de destino final: " + e.toString(), e);
             }
             MainActivity.saveResultsProgressBar.incrementProgressBy(1);
         }
     }
 
-    //TODO : use asynctask for saving files
-
-    public static void saveEncodings(Context context, HashMap<String, Encoding> Encodings){
+    public static void saveEncodings(Context context, HashMap<String, Encoding> Encodings) {
         String encPath = getEncodingsPath();
         File file = new File(encPath);
-        ObjectOutputStream outputStream = null;
         try {
-            outputStream = new ObjectOutputStream(new FileOutputStream(file));
+            ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(file));
             outputStream.writeObject(Encodings);
             outputStream.flush();
             outputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showToast(context, "Unable to save encodings!");
-            Log.e("saveEncodings", "Unable to save encodings!");
+        } catch (Exception e) {
+            showToast(context, "Error al guardar codificaciones serializadas: " + e.toString());
         }
     }
 
-    public static HashMap<String, Encoding> loadEncodings(){
+    public static HashMap<String, Encoding> loadEncodings() {
         String encPath = getEncodingsPath();
         File file = new File(encPath);
 
-        if(!file.exists())
+        if (!file.exists()) {
             return null;
+        }
 
         HashMap<String, Encoding> encodings = null;
-        ObjectInputStream inputStream = null;
         try {
-            inputStream = new ObjectInputStream(new FileInputStream(file));
+            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file));
             encodings = (HashMap<String, Encoding>) inputStream.readObject();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            inputStream.close();
+        } catch (Exception e) {
+            Log.e("Utils", "Error al cargar codificaciones existentes: " + e.toString(), e);
         }
         return encodings;
     }
 
-    public static String getBasePath()
-    {
-        //return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-        //        + "/Clusterface";
-        return Environment.getExternalStorageDirectory() + "/Clusterface";
+    public static String getBasePath() {
+        File root = Environment.getExternalStorageDirectory();
+        if (root != null) {
+            return root.getAbsolutePath() + "/Clusterface";
+        }
+        return "/sdcard/Clusterface";
     }
 
-    public static String getInputPath()
-    {
+    public static String getInputPath() {
         return getBasePath() + "/Input";
     }
 
-    public static String getCropsPath()
-    {
+    public static String getCropsPath() {
         return getBasePath() + "/Crops";
     }
 
-    public static String getResultsPath()
-    {
+    public static String getResultsPath() {
         return getBasePath() + "/Results";
     }
 
-    public static String getEncodingsPath()
-    {
+    public static String getEncodingsPath() {
         return getBasePath() + "/encodings.enc";
     }
 
-    public static void createInputAndCropsFolder()
-    {
-        File inputDir = new File(getInputPath());
-        if(!inputDir.exists())
-            inputDir.mkdirs();
+    public static String getModelPath() {
+        return getBasePath() + "/sandberg.tflite";
+    }
 
-        /**create empty ".nomedia" files in the directories
-         * to prevent gallery from including these images*/
-        File inputNoMedia = new File((getInputPath() + "/.nomedia"));
-        if(!inputNoMedia.exists()) {
+    public static void importModel(Context context, Uri sourceUri) {
+        String destPath = getModelPath();
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(sourceUri);
+            FileUtils.copyInputStreamToFile(inputStream, new File(destPath));
+            showToast(context, "Modelo TFLite importado con éxito.");
+        } catch (Exception e) {
+            showToast(context, "Error al importar el archivo del modelo TFLite: " + e.toString());
+        }
+    }
+
+    public static void createInputAndCropsFolder() {
+        File inputDir = new File(getInputPath());
+        if (!inputDir.exists()) {
+            inputDir.mkdirs();
+        }
+
+        File inputNoMedia = new File(getInputPath() + "/.nomedia");
+        if (!inputNoMedia.exists()) {
             try {
                 inputNoMedia.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                Log.e("Utils", "Error al crear nomedia en carpeta input: " + e.toString(), e);
             }
         }
         File cropsDir = new File(getCropsPath());
-        if(!cropsDir.exists())
+        if (!cropsDir.exists()) {
             cropsDir.mkdirs();
+        }
         File cropsNoMedia = new File(getCropsPath() + "/.nomedia");
-        if(!cropsNoMedia.exists()) {
+        if (!cropsNoMedia.exists()) {
             try {
                 cropsNoMedia.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                Log.e("Utils", "Error al crear nomedia en carpeta crops: " + e.toString(), e);
             }
         }
+    }
+
+    public static boolean hasStorageAccess(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return Environment.isExternalStorageManager();
+        }
+        return true;
     }
 }

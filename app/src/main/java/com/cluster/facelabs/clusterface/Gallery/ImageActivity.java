@@ -1,7 +1,7 @@
 package com.cluster.facelabs.clusterface.Gallery;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageView;
 
@@ -23,10 +23,15 @@ public class ImageActivity extends AppCompatActivity {
         imgView = findViewById(R.id.imageView2);
         Intent intent = getIntent();
         String cropPath = intent.getStringExtra("cropPath");
-        String[] splits = cropPath.split("/");
-        String cropName = splits[splits.length-1];
-        String inputName  = Utils.getInputPath() + "/" + cropName.substring(0, cropName.lastIndexOf('_')) + "." + FilenameUtils.getExtension(cropName);
-
-        Glide.with(this).load(inputName).into(imgView);
+        if (cropPath != null) {
+            String[] splits = cropPath.split("/");
+            String cropName = splits[splits.length-1];
+            String inputName  = Utils.getInputPath() + "/" + cropName.substring(0, cropName.lastIndexOf('_')) + "." + FilenameUtils.getExtension(cropName);
+            try {
+                Glide.with(this).load(inputName).into(imgView);
+            } catch (Exception e) {
+                Utils.showToast(this, "Error al cargar la imagen seleccionada con Glide: " + e.toString());
+            }
+        }
     }
 }

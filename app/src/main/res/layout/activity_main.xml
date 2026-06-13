@@ -1,329 +1,497 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
-    <LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Queueing face finders..."
-            android:textSize="18sp"
-            android:visibility="gone"/>
-        <ProgressBar
-            android:id="@+id/face_queue_pbar"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="20dp"
-            android:padding="5dp"
-            android:progress="0"
-            android:visibility="gone"
-            android:progressDrawable="@drawable/blue_progress"/>
+            android:padding="12dp">
 
-        <!-->##############GET FACES#################<-->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:elevation="10dp"
-            android:background="@drawable/customborder"
-            android:layout_marginBottom="5dp">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Select input photos"
-                android:textSize="18sp"/>
-            <Button
-                android:id="@+id/select_photos_button"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="8dp"
-                android:text="Pick\nPhotos"
-                android:textSize="12sp"
-                android:onClick="selectInputPhotos"
-                style="@style/Widget.AppCompat.Button.Colored"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Min face size"
-                android:textSize="18sp"/>
-            <SeekBar
-                android:id="@+id/min_face_size_seekbar"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:theme="@style/Widget.AppCompat.SeekBar.Discrete"
-                android:max="5"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="Accurate"
-                    android:textSize="18sp"/>
-                <Switch
-                    android:id="@+id/face_detect_mode_switch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="10dp"
-                    />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="Fast"
-                    android:textSize="18sp"/>
-            </LinearLayout>
-            <Button
-                android:id="@+id/get_faces_button"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="8dp"
-                android:text="Get\nFaces"
-                android:textSize="12sp"
-                android:onClick="getFaces"
-                style="@style/Widget.AppCompat.Button.Colored"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Extracting face crops..."
-                android:textSize="18sp"/>
             <ProgressBar
-                android:id="@+id/face_pbar"
+                android:id="@+id/face_queue_pbar"
                 style="@android:style/Widget.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:padding="5dp"
-                android:progress="0"
-                android:progressDrawable="@drawable/blue_progress"/>
-        </LinearLayout>
-        <!-->##############GET FACES#################<-->
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Queueing face encoders..."
-            android:textSize="18sp"
-            android:visibility="gone"/>
-        <ProgressBar
-            android:id="@+id/encoding_queue_pbar"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="20dp"
-            android:padding="5dp"
-            android:progress="0"
-            android:visibility="gone"
-            android:progressDrawable="@drawable/blue_progress"/>
-
-        <!-->##############ENCODE FACES#################<-->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:elevation="10dp"
-            android:background="@drawable/customborder"
-            android:layout_marginBottom="5dp">
-            <Button
-                android:id="@+id/get_encodings_button"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="8dp"
-                android:text="Encode\nFaces"
-                android:textSize="12sp"
-                android:onClick="getEncodings"
-                style="@style/Widget.AppCompat.Button.Colored"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Generating face encodings..."
-                android:textSize="18sp"/>
-            <ProgressBar
-                android:id="@+id/encoding_pbar"
-                style="@android:style/Widget.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:padding="5dp"
-                android:progress="0"
-                android:progressDrawable="@drawable/blue_progress"/>
-        </LinearLayout>
-        <!-->##############ENCODE FACES#################<-->
-
-        <!-->##############CLUSTER FACES#################<-->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:elevation="10dp"
-            android:background="@drawable/customborder"
-            android:layout_marginBottom="5dp">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Select clustering method"
-                android:textSize="18sp"/>
-            <Spinner
-                android:id="@+id/cluster_type_spinner"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="5dp"/>
-
-            <TextView
-                android:id="@+id/kmeans_cluster_count_desc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Enter k :"
-                android:textSize="18sp"
-                android:visibility="gone"/>
-            <EditText
-                android:id="@+id/kmeans_cluster_count"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="2"
-                android:inputType="number"
-                android:visibility="gone"
-                android:paddingBottom="5dp"/>
-
-            <TextView
-                android:id="@+id/dbscan_eps_desc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Enter eps"
-                android:textSize="18sp"/>
-            <EditText
-                android:id="@+id/dbscan_eps"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="7.8"
-                android:inputType="numberDecimal"/>
-            <TextView
-                android:id="@+id/dbscan_min_count_desc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Enter min pts"
-                android:textSize="18sp"/>
-            <EditText
-                android:id="@+id/dbscan_min_count"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="30"
-                android:inputType="number"/>
-            <TextView
-                android:id="@+id/cw_threshold_desc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Threshold"
-                android:textSize="18sp"/>
-            <EditText
-                android:id="@+id/cw_threshold"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="75"
-                android:inputType="number"/>
-
-            <Button
-                android:id="@+id/cluster_button"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="8dp"
-                android:text="Group\nFaces"
-                android:textSize="12sp"
-                android:onClick="getClusters"
-                style="@style/Widget.AppCompat.Button.Colored"/>
-
-            <TextView
-                android:id="@+id/cw_graph_pbar_desc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Creating graph..."
-                android:textSize="18sp"
-                android:visibility="gone"/>
-            <ProgressBar
-                android:id="@+id/cw_graph_pbar"
-                style="@android:style/Widget.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:padding="5dp"
+                android:layout_width="0dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="8dp"
                 android:progress="0"
                 android:visibility="gone"
-                android:progressDrawable="@drawable/blue_progress"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Clustering faces..."
-                android:textSize="18sp"/>
-            <ProgressBar
-                android:id="@+id/clustering_pbar"
-                style="@android:style/Widget.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:padding="5dp"
-                android:progress="0"
-                android:progressDrawable="@drawable/blue_progress"/>
-            <TextView
-                android:id="@+id/cluster_output_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="18sp"
-                android:text="Cluster result : "/>
-        </LinearLayout>
-        <!-->##############CLUSTER FACES#################<-->
+                android:progressDrawable="@drawable/blue_progress"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <!-->##############SAVE RESULTS#################<-->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:elevation="10dp"
-            android:background="@drawable/customborder"
-            android:layout_marginBottom="5dp">
-            <Button
-                android:id="@+id/save_results_button"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="8dp"
-                android:text="Save\nResults"
-                android:textSize="12sp"
-                android:onClick="getResults"
-                style="@style/Widget.AppCompat.Button.Colored"/>
-            <TextView
-                android:layout_width="match_parent"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/faces_card"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Saving results..."
-                android:textSize="18sp"/>
-            <ProgressBar
-                android:id="@+id/save_results_pbar"
-                style="@android:style/Widget.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:padding="5dp"
-                android:progress="0"
-                android:progressDrawable="@drawable/blue_progress"/>
-            <Button
-                android:id="@+id/show_results_button"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="8dp"
-                android:text="Show\nResults"
-                android:textSize="12sp"
-                android:onClick="showResults"
-                style="@style/Widget.AppCompat.Button.Colored"/>
-        </LinearLayout>
-        <!-->##############SAVE RESULTS#################<-->
+                android:layout_marginTop="8dp"
+                android:background="@drawable/customborder"
+                android:padding="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/face_queue_pbar">
 
-    </LinearLayout>
-</ScrollView>
+                <TextView
+                    android:id="@+id/txt_select_photos"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Select input photos"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/select_photos_button"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:onClick="selectInputPhotos"
+                    android:text="Pick Photos"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txt_select_photos" />
+
+                <TextView
+                    android:id="@+id/txt_min_face"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Min face size"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/select_photos_button" />
+
+                <SeekBar
+                    android:id="@+id/min_face_size_seekbar"
+                    style="@style/Widget.AppCompat.SeekBar.Discrete"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_marginTop="8dp"
+                    android:max="5"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txt_min_face" />
+
+                <LinearLayout
+                    android:id="@+id/mode_layout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/min_face_size_seekbar">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Accurate"
+                        android:textSize="18sp" />
+
+                    <Switch
+                        android:id="@+id/face_detect_mode_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fast"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/get_faces_button"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:onClick="getFaces"
+                    android:text="Get Faces"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/mode_layout" />
+
+                <TextView
+                    android:id="@+id/txt_extracting"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Extracting face crops..."
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/get_faces_button" />
+
+                <ProgressBar
+                    android:id="@+id/face_pbar"
+                    style="@android:style/Widget.ProgressBar.Horizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="16dp"
+                    android:layout_marginTop="8dp"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/blue_progress"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txt_extracting" />
+
+                <TextView
+                    android:id="@+id/face_feedback_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/face_pbar" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <ProgressBar
+                android:id="@+id/encoding_queue_pbar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="8dp"
+                android:progress="0"
+                android:visibility="gone"
+                android:progressDrawable="@drawable/blue_progress"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/faces_card" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/encode_card"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/customborder"
+                android:padding="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/encoding_queue_pbar">
+
+                <Button
+                    android:id="@+id/get_encodings_button"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:onClick="getEncodings"
+                    android:text="Encode Faces"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/import_model_button"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:onClick="importModel"
+                    android:text="Import Model"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toEndOf="@id/get_encodings_button"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/txt_generating"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Generating face encodings..."
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/get_encodings_button" />
+
+                <ProgressBar
+                    android:id="@+id/encoding_pbar"
+                    style="@android:style/Widget.ProgressBar.Horizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="16dp"
+                    android:layout_marginTop="8dp"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/blue_progress"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txt_generating" />
+
+                <TextView
+                    android:id="@+id/encoding_feedback_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/encoding_pbar" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cluster_card"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/customborder"
+                android:padding="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/encode_card">
+
+                <TextView
+                    android:id="@+id/txt_select_clustering"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Select clustering method"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Spinner
+                    android:id="@+id/cluster_type_spinner"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txt_select_clustering" />
+
+                <TextView
+                    android:id="@+id/kmeans_cluster_count_desc"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Enter k :"
+                    android:textSize="18sp"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/cluster_type_spinner" />
+
+                <EditText
+                    android:id="@+id/kmeans_cluster_count"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:inputType="number"
+                    android:text="2"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/kmeans_cluster_count_desc" />
+
+                <TextView
+                    android:id="@+id/dbscan_eps_desc"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Enter eps"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/kmeans_cluster_count" />
+
+                <EditText
+                    android:id="@+id/dbscan_eps"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:inputType="numberDecimal"
+                    android:text="7.8"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dbscan_eps_desc" />
+
+                <TextView
+                    android:id="@+id/dbscan_min_count_desc"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Enter min pts"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dbscan_eps" />
+
+                <EditText
+                    android:id="@+id/dbscan_min_count"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:inputType="number"
+                    android:text="30"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dbscan_min_count_desc" />
+
+                <TextView
+                    android:id="@+id/cw_threshold_desc"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Threshold"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dbscan_min_count" />
+
+                <EditText
+                    android:id="@+id/cw_threshold"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:inputType="number"
+                    android:text="75"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/cw_threshold_desc" />
+
+                <Button
+                    android:id="@+id/cluster_button"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:onClick="getClusters"
+                    android:text="Group Faces"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/cw_threshold" />
+
+                <TextView
+                    android:id="@+id/cw_graph_pbar_desc"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Creating graph..."
+                    android:textSize="18sp"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/cluster_button" />
+
+                <ProgressBar
+                    android:id="@+id/cw_graph_pbar"
+                    style="@android:style/Widget.ProgressBar.Horizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="16dp"
+                    android:layout_marginTop="8dp"
+                    android:progress="0"
+                    android:visibility="gone"
+                    android:progressDrawable="@drawable/blue_progress"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/cw_graph_pbar_desc" />
+
+                <TextView
+                    android:id="@+id/txt_clustering"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Clustering faces..."
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/cw_graph_pbar" />
+
+                <ProgressBar
+                    android:id="@+id/clustering_pbar"
+                    style="@android:style/Widget.ProgressBar.Horizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="16dp"
+                    android:layout_marginTop="8dp"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/blue_progress"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txt_clustering" />
+
+                <TextView
+                    android:id="@+id/cluster_output_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Cluster result : "
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/clustering_pbar" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/results_card"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/customborder"
+                android:padding="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/cluster_card">
+
+                <Button
+                    android:id="@+id/save_results_button"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:onClick="getResults"
+                    android:text="Save Results"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/txt_saving"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Saving results..."
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/save_results_button" />
+
+                <ProgressBar
+                    android:id="@+id/save_results_pbar"
+                    style="@android:style/Widget.ProgressBar.Horizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="16dp"
+                    android:layout_marginTop="8dp"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/blue_progress"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txt_saving" />
+
+                <Button
+                    android:id="@+id/show_results_button"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:onClick="showResults"
+                    android:text="Show Results"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/save_results_pbar" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
